@@ -13,7 +13,7 @@ pipeline {
                 sh 'chmod -R +rwx ./Jenkins/scripts/kill.sh'
                 sh './jenkins/scripts/deliver.sh'
                 input message: 'Finished using the web site? (Click "Proceed" to continue)'
-                sh './jenkins/scripts/kill.sh'
+                sh './Jenkins/scripts/kill.sh'
             }
         }
     }
