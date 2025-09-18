@@ -1,9 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-npm run ng build
-npm run ng serve &
-sleep 1
-echo $! > .pidfile
+# Install dependencies
+npm install
 
-echo 'Now...'
-echo 'Visit http://localhost:4200 to see your Node.js/Angular application in action.'
+# Build Angular app (production mode)
+ng build --configuration production
+
+echo "Angular build complete"
