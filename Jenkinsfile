@@ -1,20 +1,54 @@
 pipeline {
     agent any
-    tools {nodejs "NODEJS"}
+
+    environment {
+        EC2_USER = 'ubuntu'
+        EC2_IP = '98.89.5.238'
+        PEM_PATH = '/home/saiteja/Downloads/jenkinsang.pem'
+        REMOTE_DIR = '/var/www/my-angular-app'
+        LOCAL_PROJECT = "${WORKSPACE}"  // Jenkins workspace
+    }
+
     stages {
-        stage('Build') {
+
+        stage('Checkout') {
             steps {
-                sh 'npm install'
+                checkout scm
             }
         }
-        stage('Deliver') {
+
+        stage('Install & Build') {
             steps {
-                sh 'chmod -R +rwx ./jenkins/scripts/deliver.sh'
-                sh 'chmod -R +rwx ./jenkins/scripts/kill.sh'
-                sh './jenkins/scripts/deliver.sh'
-                input message: 'Finished using the web site? (Click "Proceed" to continue)'
-                sh './jenkins/scripts/kill.sh'
+                dir("${LOCAL_PROJECT}") {
+                    sh 'npm install'
+                    sh 'npx ng build --output-path=dist/my-angular-app'
+                }
             }
+        }
+
+        stage('Transfer Artifacts') {
+            steps {
+                sh """
+                scp -i ${PEM_PATH} -r ${LOCAL_PROJECT}/dist/my-angular-app/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/
+                """
+            }
+        }
+
+        stage('Restart Nginx') {
+            steps {
+                sh """
+                ssh -i ${PEM_PATH} ${EC2_USER}@${EC2_IP} 'sudo systemctl restart nginx'
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Angular app deployed successfully! Visit http://${EC2_IP}"
+        }
+        failure {
+            echo "Deployment failed. Check logs for details."
         }
     }
 }
