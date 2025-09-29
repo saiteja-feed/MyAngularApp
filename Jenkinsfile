@@ -26,7 +26,14 @@ pipeline {
             }
         }
 
-        stage('Transfer Artifacts') {
+        stage('Archive Artifacts') {
+            steps {
+                // Archive the build folder in Jenkins UI
+                archiveArtifacts artifacts: 'dist/my-angular-app/**', fingerprint: true
+            }
+        }
+
+        stage('Transfer Artifacts to EC2') {
             steps {
                 sh """
                 scp -i ${PEM_PATH} -r ${LOCAL_PROJECT}/dist/my-angular-app/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/
@@ -45,10 +52,11 @@ pipeline {
 
     post {
         success {
-            echo "Angular app deployed successfully! Visit http://${EC2_IP}"
+            echo "✅ Angular app deployed successfully!"
+            echo "You can also download artifacts from Jenkins UI or visit http://${EC2_IP}"
         }
         failure {
-            echo "Deployment failed. Check logs for details."
+            echo "❌ Deployment failed. Check logs for details."
         }
     }
 }
