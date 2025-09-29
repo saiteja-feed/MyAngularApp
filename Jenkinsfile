@@ -27,12 +27,16 @@ pipeline {
             }
         }
 
-        stage('Build Angular App') {
-            steps {
-                sh """
-                cd $APP_DIR
-                npm run build -- --prod
-                """
+        stage('Install Dependencies & Build') {
+    steps {
+        sh '''
+        cd MyAngularApp
+        npm install
+        npm run build -- --prod
+        '''
+            }
+        }
+
             }
         }
 
